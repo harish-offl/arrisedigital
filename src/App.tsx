@@ -278,10 +278,10 @@ function Hero({ scrollTo }: { scrollTo: (id: string) => void }) {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
           {[
-            { value: '100+', label: 'Clients Served' },
-            { value: '3+',   label: 'Years Experience' },
-            { value: '500+', label: 'Projects Done' },
-            { value: '98%',  label: 'Satisfaction Rate' },
+            { value: '20+', label: 'Clients Served' },
+            { value: '2+',   label: 'Years Experience' },
+            { value: '100+', label: 'Projects Done' },
+            { value: '89%',  label: 'Satisfaction Rate' },
           ].map((s, i) => (
             <div key={i} className={`glass-card gradient-border ${cardColor(i)} rounded-2xl p-5`}>
               <div className="text-2xl md:text-3xl font-black gradient-text">{s.value}</div>
@@ -313,28 +313,217 @@ function MarqueeBanner() {
   );
 }
 
+// ─── Services helpers ─────────────────────────────────────────────────────────
+
+// Renders text with [[highlighted]] words in brand gradient
+function GradientText({ text }: { text: string }) {
+  const parts = text.split(/(\[\[.*?\]\])/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith('[[') ? (
+          <span key={i} className="gradient-text font-semibold">{p.slice(2, -2)}</span>
+        ) : (
+          <span key={i}>{p}</span>
+        )
+      )}
+    </>
+  );
+}
+
+// Typewriter hook
+function useTypewriter(text: string, active: boolean, speed = 18) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!active) { setDisplayed(''); setDone(false); return; }
+    setDisplayed(''); setDone(false);
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) { clearInterval(id); setDone(true); }
+    }, speed);
+    return () => clearInterval(id);
+  }, [text, active]);
+  return { displayed, done };
+}
+
+// Spotlight detail panel — shown inside the foreground featured card
+function SpotlightDetail({ service, onClose }: {
+  service: { title: string; color: string; detail: string; benefits: string[]; process: string[] };
+  onClose: () => void;
+}) {
+  const { displayed, done } = useTypewriter(service.detail, true, 16);
+  const [vis, setVis] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setVis(true), 120); return () => clearTimeout(t); }, []);
+
+  return (
+    <div className={`transition-all duration-500 ${vis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      <div className="h-px w-full mb-5 mt-1" style={{ background: `linear-gradient(90deg, ${service.color}50, transparent)` }} />
+      <p className="text-white/75 text-sm md:text-base leading-relaxed mb-6 min-h-[56px]">
+        <GradientText text={displayed} />
+        {!done && (
+          <span className="inline-block w-[2px] h-[15px] ml-[2px] align-middle rounded-full"
+            style={{ background: service.color, animation: 'twBlink 0.65s step-end infinite' }} />
+        )}
+      </p>
+      {service.benefits.length > 0 && (
+        <div className="mb-5">
+          <p className="text-white/25 text-[10px] font-bold tracking-[0.15em] uppercase mb-3">Key Outcomes</p>
+          <div className="flex flex-wrap gap-2">
+            {service.benefits.map((b, i) => (
+              <span key={i} className="px-3 py-1.5 rounded-full text-xs font-semibold"
+                style={{ background: `${service.color}15`, border: `1px solid ${service.color}35`, color: service.color }}>
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {service.process.length > 0 && (
+        <div className="mb-6">
+          <p className="text-white/25 text-[10px] font-bold tracking-[0.15em] uppercase mb-3">How It Works</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {service.process.map((step, i) => (
+              <div key={i} className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0 mt-0.5"
+                  style={{ background: `${service.color}20`, color: service.color }}>{i + 1}</span>
+                <span className="text-white/45 text-xs leading-relaxed">{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <button onClick={onClose}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all hover:scale-105"
+        style={{ background: `${service.color}15`, border: `1px solid ${service.color}30`, color: service.color }}>
+        <X size={11} /> Back to Services
+      </button>
+    </div>
+  );
+}
+
 // ─── Services ─────────────────────────────────────────────────────────────────
+const SERVICE_DATA = [
+    {
+      icon: TrendingUp, title: 'Social Media Marketing', color: '#2D8CFF',
+      desc: 'Strategic growth campaigns that build real audiences and drive engagement across all platforms.',
+      detail: 'We craft [[data-driven social strategies]] that turn your brand into a community magnet. From content calendars to engagement tactics, every move is designed to [[grow your audience]] and convert followers into loyal customers.',
+      benefits: ['120%+ Engagement Boost', 'Organic Reach Growth', 'Brand Authority', 'Lead Generation'],
+      process: ['Brand audit & competitor analysis', 'Custom content strategy & calendar', 'Daily posting & community management', 'Monthly analytics & growth report'],
+    },
+    {
+      icon: Edit3, title: 'Content Creation', color: '#7B3FE4',
+      desc: 'Scroll-stopping content that tells your brand story and converts followers into customers.',
+      detail: 'Every piece of content we create is built to [[stop the scroll]] and spark action. We blend [[storytelling with strategy]] — crafting captions, visuals, and copy that resonate deeply with your target audience.',
+      benefits: ['Higher Engagement Rate', 'Brand Voice Consistency', 'Viral-Ready Formats', 'Conversion-Focused Copy'],
+      process: ['Brand voice & tone definition', 'Content ideation & scripting', 'Visual design & production', 'Publish, test & optimise'],
+    },
+    {
+      icon: Video, title: 'Video Editing', color: '#D91E9B',
+      desc: 'Cinematic edits with smooth transitions, motion graphics, and professional color grading.',
+      detail: 'We transform raw footage into [[cinematic masterpieces]]. Our editors bring your vision to life with precision color grading, dynamic motion graphics, and [[seamless transitions]] that keep viewers hooked till the last frame.',
+      benefits: ['Cinematic Color Grade', 'Motion Graphics', 'Sound Design', 'Platform-Optimised Exports'],
+      process: ['Footage review & storyboard', 'Rough cut & pacing', 'Color grade & VFX', 'Final delivery in all formats'],
+    },
+    {
+      icon: Bot, title: 'AI Automation', color: '#2D8CFF',
+      desc: 'Intelligent chatbots and automation workflows that work 24/7 to grow your business.',
+      detail: 'We build [[intelligent automation systems]] that handle repetitive tasks, qualify leads, and nurture customers — all on autopilot. Your business keeps [[working while you sleep]], powered by cutting-edge AI workflows.',
+      benefits: ['24/7 Lead Capture', 'Reduced Manual Work', 'Faster Response Time', 'Scalable Workflows'],
+      process: ['Process audit & automation mapping', 'AI workflow design & build', 'Integration & testing', 'Monitor, optimise & scale'],
+    },
+    {
+      icon: Code, title: 'Website Development', color: '#7B3FE4',
+      desc: 'Fast, modern, conversion-optimized websites built with the latest tech stack.',
+      detail: 'We engineer [[high-performance websites]] that don\'t just look stunning — they convert. Built with React, Next.js, and modern tooling, every site is [[blazing fast]], SEO-ready, and designed to turn visitors into customers.',
+      benefits: ['Sub-2s Load Time', 'SEO Optimised', 'Mobile-First Design', 'Conversion-Focused UX'],
+      process: ['Discovery & wireframing', 'UI/UX design in Figma', 'Development & CMS integration', 'Launch, SEO & ongoing support'],
+    },
+    {
+      icon: Palette, title: 'Graphic Design', color: '#D91E9B',
+      desc: 'Premium visual identity — logos, branding, packaging, and marketing collateral.',
+      detail: 'Great brands are built on [[iconic visual identity]]. We design logos, brand systems, packaging, and marketing assets that communicate [[premium quality]] at a glance and make your brand unforgettable.',
+      benefits: ['Iconic Logo Design', 'Full Brand System', 'Packaging Design', 'Marketing Collateral'],
+      process: ['Brand discovery & moodboard', 'Logo concepts & refinement', 'Brand guidelines document', 'Asset delivery & handoff'],
+    },
+    {
+      icon: Camera, title: 'Photography', color: '#2D8CFF',
+      desc: 'Professional product and brand photography that elevates your visual presence.',
+      detail: 'We capture your brand\'s essence through [[professional photography]] that commands attention. From product shoots to brand storytelling, every frame is crafted to [[elevate your visual identity]] and build instant trust.',
+      benefits: ['Product Photography', 'Brand Storytelling', 'Social Media Ready', 'High-Res Delivery'],
+      process: ['Creative brief & shot list', 'Studio or on-location shoot', 'Professional editing & retouching', 'Delivery in all required formats'],
+    },
+    {
+      icon: Globe, title: 'Meta & Google Ads', color: '#7B3FE4',
+      desc: 'Data-driven paid campaigns across Meta and Google with precise targeting for maximum ROI.',
+      detail: 'We run [[ROI-obsessed paid campaigns]] across Meta and Google that put your brand in front of the exact right audience. Every rupee is tracked, tested, and optimised to [[maximise your return]] and scale what works.',
+      benefits: ['Precise Audience Targeting', 'A/B Split Testing', 'Weekly ROI Reports', 'Retargeting Funnels'],
+      process: ['Audience research & campaign strategy', 'Ad creative & copywriting', 'Campaign launch & pixel setup', 'Optimise, scale & report'],
+    },
+    {
+      icon: FileText, title: 'Brand Strategy', color: '#D91E9B',
+      desc: 'End-to-end brand positioning and digital strategy to dominate your market.',
+      detail: 'We build [[comprehensive brand strategies]] that position you as the undisputed leader in your market. From positioning and messaging to digital roadmaps, we give your brand a [[clear path to dominance]].',
+      benefits: ['Market Positioning', 'Competitor Analysis', 'Digital Roadmap', 'Messaging Framework'],
+      process: ['Market & competitor research', 'Brand positioning workshop', 'Strategy document & roadmap', 'Execution support & review'],
+    },
+    {
+      icon: Bot, title: 'AI Chatbot', color: '#2D8CFF',
+      desc: 'Custom AI-powered chatbots that engage visitors, capture leads, and answer queries 24/7.',
+      detail: 'Our [[custom AI chatbots]] are trained on your brand voice and business knowledge. They engage every visitor, capture qualified leads, and answer questions [[instantly around the clock]] — turning your website into a 24/7 sales machine.',
+      benefits: ['24/7 Lead Capture', 'Instant Query Resolution', 'WhatsApp Integration', 'Custom Brand Voice'],
+      process: ['Knowledge base & flow design', 'AI training & personality setup', 'Website & WhatsApp integration', 'Testing, launch & monitoring'],
+    },
+    {
+      icon: Mail, title: 'Email Automation', color: '#7B3FE4',
+      desc: 'Smart email workflows that nurture leads, send confirmations, and keep your audience engaged.',
+      detail: 'We design [[intelligent email sequences]] that nurture your leads through every stage of the funnel. From welcome flows to re-engagement campaigns, your audience stays [[connected and converting]] on complete autopilot.',
+      benefits: ['Automated Nurture Flows', 'High Open Rates', 'Lead Segmentation', 'Revenue on Autopilot'],
+      process: ['Audience segmentation & mapping', 'Email sequence design & copy', 'Automation setup & testing', 'Monitor, A/B test & optimise'],
+    },
+    {
+      icon: Clapperboard, title: 'Videography', color: '#D91E9B',
+      desc: 'Professional video shoots, brand films, and cinematic production that tell your story with impact.',
+      detail: 'We produce [[cinematic brand films]] and professional video content that tell your story with real emotional impact. From concept to final cut, every production is crafted to [[captivate your audience]] and elevate your brand.',
+      benefits: ['Brand Films', 'Product Videos', 'Testimonial Shoots', 'Social Media Reels'],
+      process: ['Concept development & scripting', 'Pre-production & location scouting', 'Professional shoot day', 'Post-production & delivery'],
+    },
+];
+
 function Services({ visible }: { visible: Record<string, boolean> }) {
-  const services = [
-    { icon: TrendingUp, title: 'Social Media Marketing', desc: 'Strategic growth campaigns that build real audiences and drive engagement across all platforms.', color: '#2D8CFF' },
-    { icon: Edit3,      title: 'Content Creation',       desc: 'Scroll-stopping content that tells your brand story and converts followers into customers.',    color: '#7B3FE4' },
-    { icon: Video,      title: 'Video Editing',          desc: 'Cinematic edits with smooth transitions, motion graphics, and professional color grading.',     color: '#D91E9B' },
-    { icon: Bot,        title: 'AI Automation',          desc: 'Intelligent chatbots and automation workflows that work 24/7 to grow your business.',           color: '#2D8CFF' },
-    { icon: Code,       title: 'Website Development',    desc: 'Fast, modern, conversion-optimized websites built with the latest tech stack.',                 color: '#7B3FE4' },
-    { icon: Palette,    title: 'Graphic Design',         desc: 'Premium visual identity — logos, branding, packaging, and marketing collateral.',              color: '#D91E9B' },
-    { icon: Camera,     title: 'Photography',            desc: 'Professional product and brand photography that elevates your visual presence.',                color: '#2D8CFF' },
-    { icon: Globe,      title: 'Meta Ads',               desc: 'Data-driven paid campaigns with precise targeting for maximum ROI.',                           color: '#7B3FE4' },
-    { icon: FileText,   title: 'Brand Strategy',         desc: 'End-to-end brand positioning and digital strategy to dominate your market.',                   color: '#D91E9B' },
-    { icon: Bot,        title: 'AI Chatbot',             desc: 'Custom AI-powered chatbots that engage visitors, capture leads, and answer queries 24/7 automatically.', color: '#2D8CFF' },
-    { icon: Mail,       title: 'Email Automation',       desc: 'Smart email workflows that nurture leads, send confirmations, and keep your audience engaged on autopilot.', color: '#7B3FE4' },
-    { icon: Clapperboard, title: 'Videography',             desc: 'Professional video shoots, brand films, and cinematic production that tell your story with impact.', color: '#D91E9B' },
-  ];
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const spotlightRef = useRef<HTMLDivElement>(null);
+
+  const openCard = (i: number) => {
+    if (isTransitioning) return;
+    if (activeIdx === i) { closeCard(); return; }
+    setIsTransitioning(true);
+    setActiveIdx(i);
+    setTimeout(() => setIsTransitioning(false), 500);
+    setTimeout(() => spotlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+  };
+
+  const closeCard = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setActiveIdx(null);
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
+
+  const activeService = activeIdx !== null ? SERVICE_DATA[activeIdx] : null;
 
   return (
     <section id="services" className="py-28 px-6 relative overflow-hidden"
       style={{ background: 'rgba(6,6,10,0.6)' }}>
       <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle at 90% 10%, rgba(123,63,228,0.06), transparent 55%)' }} />
+      {activeService && (
+        <div className="absolute inset-0 pointer-events-none transition-all duration-700"
+          style={{ background: `radial-gradient(ellipse at 50% 40%, ${activeService.color}07, transparent 65%)` }} />
+      )}
 
       <div className="max-w-6xl mx-auto relative z-10">
         <div className={`text-center mb-16 section-reveal ${visible['services'] ? 'visible' : ''}`}>
@@ -345,24 +534,121 @@ function Services({ visible }: { visible: Record<string, boolean> }) {
           <p className="text-white/40 text-lg max-w-xl mx-auto">Everything your brand needs to grow, all under one roof.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {services.map((s, i) => (
-            <div key={i}
-              className={`glass-card gradient-border ${cardColor(i)} card-hover rounded-2xl p-6 group cursor-pointer section-reveal ${visible['services'] ? 'visible' : ''}`}
-              style={{ transitionDelay: `${i * 55}ms` }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110"
-                style={{ background: `${s.color}12`, border: `1px solid ${s.color}20` }}>
-                <s.icon size={20} style={{ color: s.color }} />
+        {/* ── SPOTLIGHT MODE ── */}
+        {activeService ? (
+          <div className="flex flex-col lg:flex-row gap-6 items-start" style={{ animation: 'fadeIn 0.4s ease both' }}>
+
+            {/* Foreground featured card */}
+            <div ref={spotlightRef} className="w-full lg:w-[52%] flex-shrink-0 rounded-3xl p-7 md:p-9 relative overflow-hidden"
+              style={{
+                background: 'rgba(10,10,18,0.97)',
+                border: `1.5px solid ${activeService.color}55`,
+                boxShadow: `0 0 0 1px ${activeService.color}18, 0 32px 80px ${activeService.color}22, 0 8px 40px rgba(0,0,0,0.75)`,
+                backdropFilter: 'blur(32px)',
+                animation: 'spotlightIn 0.45s cubic-bezier(0.22,1,0.36,1) both',
+              }}>
+              <div className="absolute top-0 right-0 w-56 h-56 rounded-full pointer-events-none"
+                style={{ background: `radial-gradient(circle at 100% 0%, ${activeService.color}15, transparent 65%)` }} />
+
+              {/* Header row */}
+              <div className="flex items-start justify-between mb-6 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: `${activeService.color}18`,
+                      border: `1.5px solid ${activeService.color}45`,
+                      boxShadow: `0 0 28px ${activeService.color}28`,
+                    }}>
+                    <activeService.icon size={26} style={{ color: activeService.color }} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold tracking-[0.18em] uppercase block mb-0.5"
+                      style={{ color: activeService.color }}>Featured Service</span>
+                    <h3 className="text-white font-black text-xl md:text-2xl tracking-tight">{activeService.title}</h3>
+                  </div>
+                </div>
+                <button onClick={closeCard} aria-label="Close"
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 transition-all hover:scale-110 hover:bg-white/10"
+                  style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.4)' }}>
+                  <X size={14} />
+                </button>
               </div>
-              <h3 className="text-white font-bold text-base mb-2 tracking-tight">{s.title}</h3>
-              <p className="text-white/40 text-sm leading-relaxed">{s.desc}</p>
-              <div className="mt-4 flex items-center gap-1 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ color: s.color }}>
-                Learn more <ChevronRight size={13} />
-              </div>
+
+              <SpotlightDetail service={activeService} onClose={closeCard} />
             </div>
-          ))}
-        </div>
+
+            {/* Background cards */}
+            <div className="w-full lg:flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+              {SERVICE_DATA.map((s, i) => {
+                if (i === activeIdx) return null;
+                return (
+                  <button key={i} onClick={() => openCard(i)}
+                    className="text-left rounded-2xl p-4 group outline-none focus-visible:ring-2 focus-visible:ring-violet-500 service-bg-card"
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      backdropFilter: 'blur(12px)',
+                      transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+                    }}
+                    onMouseEnter={e => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.opacity = '1'; el.style.transform = 'scale(1.02)';
+                      el.style.borderColor = `${s.color}45`;
+                      el.style.boxShadow = `0 8px 28px ${s.color}18`;
+                    }}
+                    onMouseLeave={e => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.opacity = '0.5'; el.style.transform = 'scale(0.97)';
+                      el.style.borderColor = 'rgba(255,255,255,0.07)';
+                      el.style.boxShadow = 'none';
+                    }}
+                    onFocus={e => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.opacity = '1'; el.style.transform = 'scale(1.02)';
+                    }}
+                    onBlur={e => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.opacity = '0.5'; el.style.transform = 'scale(0.97)';
+                    }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
+                      style={{ background: `${s.color}12`, border: `1px solid ${s.color}20` }}>
+                      <s.icon size={15} style={{ color: s.color }} />
+                    </div>
+                    <p className="text-white/70 text-xs font-semibold leading-snug mb-1">{s.title}</p>
+                    <p className="text-white/30 text-[10px] leading-relaxed line-clamp-2">{s.desc}</p>
+                    <span className="mt-2 flex items-center gap-1 text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: s.color }}>
+                      Spotlight <ChevronRight size={10} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+        ) : (
+          /* ── DEFAULT GRID ── */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {SERVICE_DATA.map((s, i) => (
+              <div key={i} tabIndex={0}
+                onKeyDown={e => e.key === 'Enter' && openCard(i)}
+                className={`glass-card gradient-border ${cardColor(i)} card-hover rounded-2xl p-6 group cursor-pointer section-reveal ${visible['services'] ? 'visible' : ''} outline-none focus-visible:ring-2 focus-visible:ring-violet-500`}
+                style={{ transitionDelay: `${i * 50}ms` }}>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110"
+                  style={{ background: `${s.color}12`, border: `1px solid ${s.color}20` }}>
+                  <s.icon size={20} style={{ color: s.color }} />
+                </div>
+                <h3 className="text-white font-bold text-base mb-2 tracking-tight">{s.title}</h3>
+                <p className="text-white/40 text-sm leading-relaxed">{s.desc}</p>
+                <button onClick={() => openCard(i)}
+                  className="mt-4 flex items-center gap-1 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 hover:gap-2"
+                  style={{ color: s.color }}>
+                  Learn more <ChevronRight size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -394,10 +680,10 @@ function About({ visible }: { visible: Record<string, boolean> }) {
 
         <div className={`grid grid-cols-2 gap-4 section-reveal ${visible['about'] ? 'visible' : ''}`} style={{ transitionDelay: '180ms' }}>
           {[
-            { icon: Users, value: '100+', label: 'Happy Clients',  color: '#2D8CFF' },
-            { icon: Award, value: '3+',   label: 'Years Active',   color: '#7B3FE4' },
-            { icon: Zap,   value: '500+', label: 'Projects Done',  color: '#D91E9B' },
-            { icon: Star,  value: '98%',  label: 'Satisfaction',   color: '#2D8CFF' },
+            { icon: Users, value: '20+', label: 'Happy Clients',  color: '#2D8CFF' },
+            { icon: Award, value: '2+',   label: 'Years Active',   color: '#7B3FE4' },
+            { icon: Zap,   value: '100+', label: 'Projects Done',  color: '#D91E9B' },
+            { icon: Star,  value: '89%',  label: 'Satisfaction',   color: '#2D8CFF' },
           ].map((item, i) => (
             <div key={i} className={`glass-card gradient-border ${cardColor(i)} card-hover rounded-2xl p-6 text-center`}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"

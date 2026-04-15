@@ -301,3 +301,26 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
 }
+
+/* Reduced motion fallback */
+@media (prefers-reduced-motion: reduce) {
+  .section-reveal,
+  .flip-card-inner,
+  .card-hover,
+  .marquee-track {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Spotlight card entrance */
+@keyframes spotlightIn {
+  0%   { opacity: 0; transform: scale(0.94) translateY(16px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Background service cards default state */
+.service-bg-card {
+  opacity: 0.5;
+  transform: scale(0.97);
+}
